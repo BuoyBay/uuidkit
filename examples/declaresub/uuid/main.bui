@@ -1,0 +1,9 @@
+Import uuidkit
+
+Sub Main()
+    Dim known As New UUIDValue("F81D4FAE-7DEC-11D0-A765-00A0C91E6BF6")
+    Print known.Text
+    Print "Version: " + String.From(known.Version) + "; variant: " + known.Variant
+    Print "Network bytes: " + known.ToBytes().ToHex()
+    Print "Fresh UUIDv4: " + NewUUIDv4().Text
+End Sub

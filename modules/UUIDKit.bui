@@ -1,0 +1,112 @@
+Import crypto
+
+Private Function CanonicalUUID(text As String) As String
+    If String.Len(text) <> 36 Then Throw New InvalidArgumentException("UUID must use the 36-character hyphenated form")
+    Dim chars As Array Of String = String.Chars(text)
+    Dim hex As String
+    For i As Integer = 0 To 35
+        If i = 8 Or i = 13 Or i = 18 Or i = 23 Then
+            If chars(i) <> "-" Then Throw New InvalidArgumentException("UUID separator is misplaced")
+        Else
+            Dim scalar As Integer = String.Asc(chars(i))
+            If Not ((scalar >= 48 And scalar <= 57) Or (scalar >= 65 And scalar <= 70) Or (scalar >= 97 And scalar <= 102)) Then
+                Throw New InvalidArgumentException("UUID contains a non-ASCII hexadecimal digit")
+            End If
+            hex += chars(i)
+        End If
+    Next
+    Dim decoded As Result Of Bytes, String = Bytes.FromHex(hex)
+    If decoded.IsErr Then Throw New InvalidArgumentException("Invalid UUID hexadecimal data")
+    Dim lower As String = decoded.Value.ToHex()
+    Return String.Left(lower, 8) + "-" + String.Mid(lower, 9, 4) + "-" + String.Mid(lower, 13, 4) + "-" + String.Mid(lower, 17, 4) + "-" + String.Mid(lower, 21, 12)
+End Function
+
+''' Immutable UUID value. Parsing validates syntax, not an application-specific version policy.
+Public Class UUIDValue
+    Private Property mText As String
+
+    Public Sub Constructor(text As String)
+        mText = CanonicalUUID(text)
+    End Sub
+
+    Public Property Text As String
+        Get
+            Return mText
+        End Get
+    End Property
+
+    Public Function ToBytes() As Bytes
+        Dim decoded As Result Of Bytes, String = Bytes.FromHex(String.Replace(mText, "-", "", True))
+        Return decoded.Value
+    End Function
+
+    Public Property Version As Integer
+        Get
+            Return Me.ToBytes().Item(6) \ 16
+        End Get
+    End Property
+
+    Public Property Variant As String
+        Get
+            Dim octet As Integer = Me.ToBytes().Item(8)
+            If octet < 128 Then Return "NCS"
+            If octet < 192 Then Return "RFC"
+            If octet < 224 Then Return "Microsoft"
+            Return "Future"
+        End Get
+    End Property
+
+    Public Property IsNil As Boolean
+        Get
+            Return mText = "00000000-0000-0000-0000-000000000000"
+        End Get
+    End Property
+
+    Public Property IsMax As Boolean
+        Get
+            Return mText = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+        End Get
+    End Property
+
+    Public Function Equals(other As UUIDValue) As Boolean
+        If other Is Nil Then Return False
+        Return String.Compare(mText, other.Text, True) = 0
+    End Function
+
+    Public Function Compare(other As UUIDValue) As Integer
+        If other Is Nil Then Throw New InvalidArgumentException("UUID comparison requires a value")
+        Return String.Compare(mText, other.Text, True)
+    End Function
+End Class
+
+''' Interpret exactly 16 bytes in RFC network order, not Windows GUID memory order.
+Public Function UUIDFromBytes(data As Bytes) As UUIDValue
+    If data Is Nil Then Throw New InvalidArgumentException("UUID bytes are required")
+    If data.Count <> 16 Then Throw New InvalidArgumentException("UUID requires exactly 16 bytes")
+    Dim hex As String = data.ToHex()
+    Return New UUIDValue(String.Left(hex, 8) + "-" + String.Mid(hex, 9, 4) + "-" + String.Mid(hex, 13, 4) + "-" + String.Mid(hex, 17, 4) + "-" + String.Mid(hex, 21, 12))
+End Function
+
+''' Parse exactly 32 ASCII hex digits without hyphens; retain the strict constructor contract.
+Public Function UUIDFromCompact(text As String) As UUIDValue
+    If String.Len(text) <> 32 Then Throw New InvalidArgumentException("Compact UUID requires exactly 32 ASCII hexadecimal digits")
+    Return New UUIDValue(String.Left(text, 8) + "-" + String.Mid(text, 9, 4) + "-" + String.Mid(text, 13, 4) + "-" + String.Mid(text, 17, 4) + "-" + String.Mid(text, 21, 12))
+End Function
+
+Public Function NilUUID() As UUIDValue
+    Return New UUIDValue("00000000-0000-0000-0000-000000000000")
+End Function
+
+Public Function MaxUUID() As UUIDValue
+    Return New UUIDValue("ffffffff-ffff-ffff-ffff-ffffffffffff")
+End Function
+
+''' Generate UUIDv4 using Buoy Crypto.RandomBytes; entropy failures propagate.
+Public Function NewUUIDv4() As UUIDValue
+    Dim data As Bytes = Crypto.RandomBytes(16)
+    If data Is Nil Then Throw New Exception("Crypto returned no UUID entropy")
+    If data.Count <> 16 Then Throw New Exception("Crypto returned an invalid UUID entropy length")
+    data.SetItem(6, data.Item(6) Mod 16 + 64)
+    data.SetItem(8, data.Item(8) Mod 64 + 128)
+    Return UUIDFromBytes(data)
+End Function
