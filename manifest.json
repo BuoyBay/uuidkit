@@ -1,1 +1,1 @@
-{"schema":1,"name":"uuidkit","version":"0.1.0","description":"Strict UUID text and network-byte conversion with cryptographically random UUIDv4 generation"}
+{"schema":1,"name":"uuidkit","version":"0.1.0","description":"UUID parse + cryptographically random v4"}
