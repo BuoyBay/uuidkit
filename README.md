@@ -1,4 +1,4 @@
-# UUID parse + cryptographically random v4
+# UUID parse and v4
 
 Strict UUID conversion and cryptographically random UUIDv4 generation.
 `Import uuidkit` exposes `UUIDValue`, `UUIDFromBytes`, `UUIDFromCompact`, `NilUUID`, `MaxUUID` and
