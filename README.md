@@ -1,6 +1,6 @@
 # Parse UUIDs and generate cryptographically random UUIDv4 values
 
-Strict UUID conversion and cryptographically random UUIDv4 generation for Buoy.
+Strict UUID conversion and cryptographically random UUIDv4 generation.
 `Import uuidkit` exposes `UUIDValue`, `UUIDFromBytes`, `UUIDFromCompact`, `NilUUID`, `MaxUUID` and
 `NewUUIDv4`. The package uses Buoy's bundled `crypto` package for secure entropy;
 it does not use `Random`, timestamps or a MAC address to generate identifiers.
@@ -14,14 +14,14 @@ From a Buoy consumer project with BPM installed:
 
 ```sh
 bpm add uuidkit --git https://github.com/BuoyBay/uuidkit.git --rev refs/heads/main
-```
+```basic
 
 BPM records the resolved commit in its lockfile. Keep that lockfile with the
 consumer project for reproducible installs.
 
 ## Example
 
-```buoy
+```basic
 Import uuidkit
 
 Sub Main()
@@ -54,8 +54,6 @@ On your own machine, install Buoy and run:
 ```sh
 buoy ai init --both
 ```
-
-The generated agent files and editor settings stay local and are ignored by Git.
 
 ## Contributing
 

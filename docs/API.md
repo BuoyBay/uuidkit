@@ -45,19 +45,5 @@ or promise collision-free output. See [provenance and parity](../PROVENANCE.md).
 
 ## Use and verify
 
-The console example (not included in this repository) prints a parsed
-value and a fresh UUIDv4. Seal this source directory with `/usr/bin/buoy pkg seal`
+The [console example](../examples/declaresub/uuid/main.bui) prints a parsed value and a fresh UUIDv4. Seal this source directory with `/usr/bin/buoy pkg seal`
 on the development host; the `buoy` wrapper is for compilation.
-
-
-The runner seals a fresh isolated package, checks module/test/example on six
-desktop architecture targets, executes strict parsing/ownership/version tests
-and 256 random generations, and compares 128 generated conversion vectors with
-Python's `uuid` implementation. `BUOY` selects the compiler, `BPM_PACKAGER` the
-package command, and `BUOY_CRYPTO_PACKAGE` the dependency archive (default
-`/usr/share/buoy/packages/crypto-1.0.0.buipkg` on this host); the runner copies
-that archive into the isolated consumer's packages directory. Generation checks establish bit fields and
-observed distinct outputs, not a statistical proof of entropy quality or uniqueness.
-Native runtime execution is Linux x86-64; other targets are compiler checks.
-
-Test suites and fixtures are maintainer-local and are not part of this public repository.
